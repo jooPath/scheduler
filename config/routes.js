@@ -57,6 +57,10 @@ module.exports.routes = {
   'GET /test/HFS/:deadline':{
     controller: 'Workflow',
     action: 'HFS'
+  },
+  'GET /test/ICPCP/:deadline':{
+    controller: 'Workflow',
+    action: 'ICPCP'
   }
 
   /***************************************************************************

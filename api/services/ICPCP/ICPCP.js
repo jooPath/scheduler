@@ -7,13 +7,13 @@ var _ = require('lodash');
 var VirtualMachine = require('../Resource/VirtualMachine.js');
 var Task = require('../Resource/Task.js');
 
-
+module.exports = ICPCP;
 function ICPCP(taskList, deadline) { // taskList:[], {headid:h, tailid:t}, deadline:150.0
 
   var TT = 0.0;
   var id = 1;
   //VMList = require('./../../ResourceManager/VMList.js');
-  console.log(VMList);
+ // console.log(VMList);
   var List = VMList.vmList;
 
   this.do = function(){
@@ -131,8 +131,17 @@ function ICPCP(taskList, deadline) { // taskList:[], {headid:h, tailid:t}, deadl
     return _.findIndex(taskList, {instanceID:instanceID});
   };
   this.dummyNode = function(taskList){
-    var head = new Task({name:'dummyhead', nodeid:'0', instanceid:'-1', cmd:'-1'});
+    var head = new Task();
+    head.nodeName = 'dummyhead';
+    head.nodeID = 0;
+    head.instanceID = -1;
+    head.cmd = '-1';
+    head.status = 'available';
     var tail = new Task({name:'dummytail', nodeid:'0', instanceid:'-2', cmd:'-2'});
+    tail.nodeName = 'dummytail';
+    tail.nodeID = 0;
+    tail.instanceID = -2;
+    tail.cmd = '-2';
 
     var headnodes = [];
     var tailnodes = [];

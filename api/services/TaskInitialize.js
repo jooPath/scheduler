@@ -52,7 +52,7 @@ module.exports = {
     }
   },
   ICPCP: function(deadline){
-    new ICPCP(this.taskList, 190.0).do();
+    new ICPCP(this.taskList, deadline).do();
     var List = VMList.vmList;
     for(var i=0;i<List.length;i++){
       console.log(List[i].test());

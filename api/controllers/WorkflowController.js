@@ -40,7 +40,18 @@ module.exports = {
       VMList.vmList = [];
     }
   },
-  ICPCP: function(req, res){
-    console.log("ICPCP!");
+  ICPCP: function(req, res) {
+    if (TaskInitialize.taskList.length == 0)res.json({msg: 'Error! Initialize first!'});
+    else {
+      TaskInitialize.ICPCP(req.param('deadline'));
+
+      var result = [];// "[";
+      for (var i = 0; i < VMList.vmList.length; i++) {
+        result.push(VMList.vmList[i].jsontest());
+      }
+      res.json(result);
+      VMList.vmList = [];
+
+    }
   }
 };
