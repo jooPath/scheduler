@@ -1,0 +1,25 @@
+<!-- Main content -->
+<section class="content" height="100%" ng-controller="workflowCtrl" ng-init="getModule(1)">
+  <div class="row">
+    {{module.name}}
+  </div>
+</section>
+
+
+<script>
+  $module.controller('workflowCtrl', ['$scope', '$http', function ($scope, $http) {
+    $scope.getModule = function(index){
+      console.log('getModule Start');
+      $http.get("/Module/getModule/"+index).
+        success(function(module, status, headers, config) {
+          console.log("t:"+module);
+          $scope.module=module;
+        }).
+        error(function(data, status, headers, config) {
+          console.log(status, data);
+        });
+    };
+
+  }]);
+
+</script>
