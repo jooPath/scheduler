@@ -6,7 +6,11 @@
  */
 
 module.exports = {
-
+  addModule: function(req, res){
+    Module.create(req.body).exec(function(error, result){
+      res.json(result);
+    });
+  },
   getModule: function(req, res){
     Module.findOne({id: req.param('index')}).exec(function(error, module){
       console.log(module);

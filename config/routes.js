@@ -40,6 +40,10 @@ module.exports.routes = {
     view: 'test'
   },
 
+  'POST /Module/addModule':{
+    controller: 'Module',
+    action: 'addModule'
+  },
   'GET /Module/getModule/:index': {
     controller: 'Module',
     action: 'getModule'
@@ -61,7 +65,13 @@ module.exports.routes = {
   'GET /test/ICPCP/:deadline':{
     controller: 'Workflow',
     action: 'ICPCP'
+  },
+
+  'GET /test/execute':{
+    controller: 'Workflow',
+    action: 'execute'
   }
+
 
   /***************************************************************************
   *                                                                          *

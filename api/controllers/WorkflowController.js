@@ -7,51 +7,42 @@
 //var Task = require('../services/Scheduler/Resource/Task.js');
 module.exports = {
 
-  initialize: function(req, res){ // http://localhost:1337/test/init/1
-    console.log("initialize!");
-    Workflow.findOne({id: req.param('index')}).exec(function(error, wf){
+  addWorkflow: function(req, res) {
+    console.log('addWorkflow!');
 
-      Tasks.find({workflow: req.param('index')}).exec(function(error, tasks){
-        Links.find({workflow: req.param('index')}).exec(function(error, links){
-          Module.find().exec(function(error, modules){
-            TaskInitialize.init(tasks, links, modules);
-            var tList = TaskInitialize.taskList;
-            res.json(tList);
+  },
+  execute: function(req, res){
+    var deadline = 190;// req.param('deadline');
+    var wid = 1;//req.param('index');
+
+    Workflow.findOne({id:wid}).populate('tasks').populate('links').exec(function(err, wf){
+      var wf_temp = {name: wf.name}; //_.pluck(wf, 'name')};//_.() //필요한 부분만 추출
+      //console.log(wf);
+
+      WorkflowInstance.create(wf_temp).exec(function(err, wi){
+        var index = wi.id;
+        for(var i=0;i<wf.tasks.length;i++){
+          var tasks_temp = {name: wf.tasks[i].name, nodeID: wf.tasks[i].nodeID, executionCmd: wf.tasks[i].executionCmd, workflow: index};
+          TasksInstance.create(tasks_temp).exec(function(err, ti){
+            //console.log(ti.id);
           });
+        }
+        //console.log(wf.links);
+        for(var i=0;i<wf.links.length;i++){
+          var links_temp = {from_taskid: wf.links[i].from_taskid, from_interfaceid: wf.links[i].from_interfaceid, to_taskid: wf.links[i].to_taskid, to_interfaceid: wf.links[i].to_interfaceid, workflow: index};
+          LinksInstance.create(links_temp).exec(function(err, li){
+            //console.log(li.id);
+          });
+        }
+
+        Module.find().exec(function(error, modules){
+          TaskInitialize.init(wf.tasks, wf.links, modules);
+          var tList = TaskInitialize.taskList;
+          console.log(JSON.stringify(tList));
+
+          wi.HFS(deadline);
         });
       });
-
-
     });
-  },
-
-  HFS: function(req, res){ // http://localhost:1337/test/HFS/190
-    if(TaskInitialize.taskList.length == 0)res.json({msg:'Error! Initialize first!'});
-    else {
-      TaskInitialize.HFS(req.param('deadline'));
-
-     // ExecuteTask.do();
-
-      var result = [];// "[";
-      for(var i=0;i<VMList.vmList.length;i++){
-        result.push(VMList.vmList[i].jsontest());
-      }
-      res.json(result);
-      VMList.vmList = [];
-    }
-  },
-  ICPCP: function(req, res) {
-    if (TaskInitialize.taskList.length == 0)res.json({msg: 'Error! Initialize first!'});
-    else {
-      TaskInitialize.ICPCP(req.param('deadline'));
-
-      var result = [];// "[";
-      for (var i = 0; i < VMList.vmList.length; i++) {
-        result.push(VMList.vmList[i].jsontest());
-      }
-      res.json(result);
-      VMList.vmList = [];
-
-    }
   }
 };
