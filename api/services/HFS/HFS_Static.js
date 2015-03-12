@@ -84,7 +84,6 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
         target.subFrags[i].fragment.subDeadline.E = Number(this.findIndexbyInstanceID(List, target.subFrags[i].to).LST);
       }
     };
-
     for (var i = 0; i < List.length; i++) {
       var taskinfo = _.pluck(List[i].taskList, 'instanceID');
 
