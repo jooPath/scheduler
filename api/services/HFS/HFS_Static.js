@@ -3,13 +3,13 @@
  */
 // 나중에 60000을 OVM_UNIT_TIME으로 바꾸ㅡㄹ것
 var _ = require('lodash');
-var VirtualMachine = require('../Resource/VirtualMachine.js');
+//var VirtualMachine = require('../Resource/VirtualMachine.js');
 
 module.exports = HFS_Static;
 
 function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:150.0
 
-  var List = VMList.vmList;
+  var List = [];//VMList.vmList;
   var id = 1;
 
   this.do = function() {
@@ -23,10 +23,10 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
       var target = _.find(fragList, function (chr) {
         return chr.availableCheck();
       });
-      if(target == undefined)break;   // delete!
+      if (target == undefined)break;   // delete!
       fragList = _.without(fragList, target);
 
-      while(target.taskList.length > 0)   // 프래그먼트 scheduling
+      while (target.taskList.length > 0)   // 프래그먼트 scheduling
       {
         vm_unit++;          // 처음에 VM_Unit = 1 (스케줄링에 실패하면 VM Unit은 기존꺼에 1 더해짐)
 
@@ -50,13 +50,12 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
             if (target.deadline() <= vm_unit * 60000 / 1000 && sum >= target.deadline() && i != vmType_max)continue;
             // 남은 데드라인 < VM Unit time인 경우 데드라인보다 큰지도 체크해야함 (vmtype이 최대인경우는 제외)
             type = i;
-            tasks = _.take(target.taskList, j);
+            tasks = _.take(target.taskList, j); //_.pluck(_.take(target.taskList, j), 'instanceID');
 
-            var btime = Number(tasks[0].EST);
-            var VM = new VirtualMachine({id:id++, type:type, buildtime:btime.toFixed(2), terminatetime: Number(btime+ vm_unit * 60000 / 1000).toFixed(2) });
+            //var btime = Number(tasks[0].EST);
+            var vmtype = ['small', 'medium', 'large'];
+            List.push({type: vmtype[type - 1], datacenter: '1', taskList: tasks});
 
-            VM.taskqueue = tasks;
-            List.push(VM);
             //console.log(VM.test());
 
             target.taskList = _.drop(target.taskList, j);   // 추가된 부분 제외한 친구들에대해 다시 스케줄링
@@ -71,20 +70,51 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
       var sum = target.subDeadline.E; // 데드라인부터
 
       for (var i = List.length - 1; i >= 0; i--) {    // ScheduleList의 뒷부분부터
-        for (var j = List[i].taskqueue.length - 1; j >= 0; j--) {   // 각 List의 task도 뒷부분부터
+        for (var j = List[i].taskList.length - 1; j >= 0; j--) {   // 각 List의 task도 뒷부분부터
           // 스케줄 실패한 경우에는 LFT=EFT, LST=EST
-          List[i].taskqueue[j].LFT = Math.max(sum, List[i].taskqueue[j].EFT).toFixed(2);
-          sum -= List[i].taskqueue[j].getExecutionTime(type);
-          List[i].taskqueue[j].LST = Math.max(sum, List[i].taskqueue[j].EST).toFixed(2);
+          List[i].taskList[j].LFT = Math.max(sum, List[i].taskList[j].EFT).toFixed(2);
+          sum -= List[i].taskList[j].getExecutionTime(type);
+          List[i].taskList[j].LST = Math.max(sum, List[i].taskList[j].EST).toFixed(2);
         }
       }
 
-      for(var i = 0; i< target.subFrags.length; i++){
+      for (var i = 0; i < target.subFrags.length; i++) {
         // sub-fragment들의 데드라인 할당
-        target.subFrags[i].fragment.subDeadline.S = Number( this.findIndexbyInstanceID(List,  target.subFrags[i].from).EFT );
-        target.subFrags[i].fragment.subDeadline.E = Number( this.findIndexbyInstanceID(List,  target.subFrags[i].to).LST );
+        target.subFrags[i].fragment.subDeadline.S = Number(this.findIndexbyInstanceID(List, target.subFrags[i].from).EFT);
+        target.subFrags[i].fragment.subDeadline.E = Number(this.findIndexbyInstanceID(List, target.subFrags[i].to).LST);
       }
     };
+
+    for (var i = 0; i < List.length; i++) {
+      var taskinfo = _.pluck(List[i].taskList, 'instanceID');
+
+      VirtualMachine.create({type: vmtype[type], datacenter: '1', taskList: taskinfo}).exec(function (error, vm) {
+
+      /*
+        var vm_id = vm.id;
+        for(var j=0;j<vm.taskList.length;j++){
+
+          TasksInstance.findOne({id: vm.taskList[j]}).exec(function(err, tasksInstance){
+            var tmp;
+            for(var k=0;k<List.length;k++){
+              for(var l=0;l<List[k].taskList.length;l++){
+                if(List[k].taskList[l].instanceID == tasksInstance.id){
+                  tmp = List[i].taskList[j];
+                  break;
+                }
+              }
+            }
+            var next = _.pluck(tmp.nextConnectedList(), 'connected');
+            var prev = _.pluck(tmp.prevConnectedList(), 'connected');
+
+            tasksInstance.update(id, {next: next, prev: prev, vm: vm_id}).exec(function (error, ti){
+              console.log('h');
+            });
+          });
+        }*/
+        console.log(JSON.stringify(vm));
+      });
+    }
   };
   this.mandatoryTask = function(fragment, vm_unit){ // vm_unit: 1, 2, 단위 VM 사용
     fragment.recalculateEET();
@@ -111,8 +141,8 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
   this.findIndexbyInstanceID = function(List, instanceID){
 
     for(var i=0;i<List.length;i++){
-      for(var j=0;j<List[i].taskqueue.length;j++){
-        if(List[i].taskqueue[j].instanceID == instanceID)return List[i].taskqueue[j];
+      for(var j=0;j<List[i].taskList.length;j++){
+        if(List[i].taskList[j].instanceID == instanceID)return List[i].taskList[j];
       }
     }
     return -1;

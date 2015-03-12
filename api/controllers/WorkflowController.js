@@ -21,8 +21,11 @@ module.exports = {
 
       WorkflowInstance.create(wf_temp).exec(function(err, wi){
         var index = wi.id;
+        TasksInstance.create({name: 'dhead', nodeID: 0, executionCmd: '', workflow: index, status: 'available'});
+        TasksInstance.create({name: 'dtail', nodeID: 0, executionCmd: '', workflow: index, status: 'waiting'});
+
         for(var i=0;i<wf.tasks.length;i++){
-          var tasks_temp = {name: wf.tasks[i].name, nodeID: wf.tasks[i].nodeID, executionCmd: wf.tasks[i].executionCmd, workflow: index};
+          var tasks_temp = {name: wf.tasks[i].name, nodeID: wf.tasks[i].nodeID, executionCmd: wf.tasks[i].executionCmd, workflow: index, status: 'waiting'};
           TasksInstance.create(tasks_temp).exec(function(err, ti){
             //console.log(ti.id);
           });
@@ -38,7 +41,7 @@ module.exports = {
         Module.find().exec(function(error, modules){
           TaskInitialize.init(wf.tasks, wf.links, modules);
           var tList = TaskInitialize.taskList;
-          console.log(JSON.stringify(tList));
+          //console.log(JSON.stringify(tList));
 
           wi.HFS(deadline);
         });
