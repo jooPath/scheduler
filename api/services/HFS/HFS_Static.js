@@ -89,12 +89,12 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
 
       VirtualMachine.create({type: vmtype[type], datacenter: '1', taskList: taskinfo}).exec(function (error, vm) {
 
-      /*
         var vm_id = vm.id;
         for(var j=0;j<vm.taskList.length;j++){
 
           TasksInstance.findOne({id: vm.taskList[j]}).exec(function(err, tasksInstance){
-            var tmp;
+            //var tmp;
+            /*
             for(var k=0;k<List.length;k++){
               for(var l=0;l<List[k].taskList.length;l++){
                 if(List[k].taskList[l].instanceID == tasksInstance.id){
@@ -105,12 +105,14 @@ function HFS_Static(fragList) { // taskList:[], {headid:h, tailid:t}, deadline:1
             }
             var next = _.pluck(tmp.nextConnectedList(), 'connected');
             var prev = _.pluck(tmp.prevConnectedList(), 'connected');
-
+*/
+           // console.log(tmp.instanceID + ':' + next + prev);
+            /*
             tasksInstance.update(id, {next: next, prev: prev, vm: vm_id}).exec(function (error, ti){
               console.log('h');
-            });
+            });*/
           });
-        }*/
+        }
         console.log(JSON.stringify(vm));
       });
     }
